@@ -1,0 +1,11 @@
+ollama
+streamlit  
+langchain
+langchain-core
+langchain-community
+streamlit_chat
+groq
+langchain-groq
+python-dotenv
+PyPDF2
+unstructured
