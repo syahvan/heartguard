@@ -4,8 +4,10 @@ langchain
 langchain-core
 langchain-community
 streamlit_chat
+streamlit-extras
 groq
 langchain-groq
 python-dotenv
-PyPDF2
-unstructured
+faiss-cpu
+pypdf
+tqdm
