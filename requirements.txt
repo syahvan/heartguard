@@ -11,3 +11,6 @@ python-dotenv
 faiss-cpu
 pypdf
 tqdm
+sentence_transformers
+huggingface-hub
+langchain-huggingface
