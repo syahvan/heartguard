@@ -129,12 +129,12 @@ def display_chat_history(vector_store):
 def main():
     load_dotenv()  
     groq_api_key = os.environ['GROQ_API_KEY']
-    st.set_page_config(page_title="Ask your Document")
+    st.set_page_config(page_title="HeartGuard")
     st.title("❤️‍🩹 HeartGuard")
-    st.markdown("An early detection of coronary heart disease risk using an IoT and chatbot system.")
+    st.html('<p style="text-align: justify;">An early detection of coronary heart disease risk using an IoT and chatbot system.</p>')
 
     st.subheader('Prediksi Resiko Penyakit Jantung Koroner 🫀')
-    st.markdown('Penyakit jantung koroner disebut sebagai penyumbang kematian terbesar di dunia. Penyakit ini didukung oleh faktor risiko seperti kolesterol, tekanan darah tinggi, merokok, obesitas, dan diabetes. Yuk, cek risiko kamu sekarang untuk pencegahan dini dan hidup lebih sehat!')
+    st.html('<p style="text-align: justify;">Penyakit jantung koroner disebut sebagai penyumbang kematian terbesar di dunia. Penyakit ini didukung oleh faktor risiko seperti kolesterol, tekanan darah tinggi, merokok, obesitas, dan diabetes. Yuk, cek risiko kamu sekarang untuk pencegahan dini dan hidup lebih sehat!</p>')
     
     st.subheader('HeartGuard Bot 🤖')
 
@@ -146,7 +146,7 @@ def main():
         sex_option = st.radio("Jenis Kelamin", ["Laki-laki", "Perempuan"], index=None, horizontal=True)
         male = 1 if sex_option == "Laki-laki" else 0
         # Umur
-        age = st.number_input("Umur", 1, 200)
+        age = st.number_input("Umur", 0)
         # Perokok
         perokok_option = st.radio("Apakah kamu perokok?", ["Ya", "Tidak"], index=None, horizontal=True)
         currentSmoker = 1 if perokok_option == "Ya" else 0
@@ -164,43 +164,75 @@ def main():
         diabetes_option = st.radio("Apakah kamu pernah mengalami diabetes?", ["Ya", "Tidak"], index=None, horizontal=True)
         diabetes = 1 if diabetes_option == "Ya" else 0
         # BMI
-        berat_badan = st.number_input("Masukkan berat badan (kg)", min_value=1.0, format="%.2f")
-        tinggi_badan = st.number_input("Masukkan tinggi badan (cm)", min_value=1.0, format="%.2f")
-        tinggi_badan_m = tinggi_badan / 100
-        BMI = round(berat_badan / (tinggi_badan_m ** 2), 1)
-        if st.button("Submit"):
-            #st.markdown("Setelah submit, tutup pop up dengan mengklik tanda 🗙 pada pojok kanan atas atau klik tombol ESC pada keyboard")
-            st.session_state.data_diri = {"name": name, "male": male, "age": age, "currentSmoker": currentSmoker, "cigsPerDay": cigsPerDay,
-                "BPMeds": BPMeds, "prevalentStroke": prevalentStroke, "prevalentHyp": prevalentHyp, "diabetes": diabetes, "BMI":BMI}
-            st.rerun()
+        berat_badan = st.number_input("Masukkan berat badan (kg)", min_value = 0.0, format="%.2f")
+        tinggi_badan = st.number_input("Masukkan tinggi badan (cm)", min_value = 0.0, format="%.2f")
+        
+        if name and sex_option and age > 0 and perokok_option and BPmeds_option and stroke_option and hipertensi_option and diabetes_option and berat_badan > 0 and tinggi_badan > 0:
+            tinggi_badan_m = tinggi_badan / 100
+            BMI = round(berat_badan / (tinggi_badan_m ** 2), 1)
+            if st.button("Submit"):
+                st.session_state.data_diri = {"name": name, "male": male, "age": age, "currentSmoker": currentSmoker, "cigsPerDay": cigsPerDay,
+                    "BPMeds": BPMeds, "prevalentStroke": prevalentStroke, "prevalentHyp": prevalentHyp, "diabetes": diabetes, "BMI":BMI}
+                st.rerun()
+        else:
+            st.error('⚠️ Lengkapi Form Terlebih Dahulu!')
+            st.button("Submit", disabled=True)
 
     if "data_diri" not in st.session_state:
-        st.markdown('Untuk menggunakan aplikasi ini, silahkan isi form dibawah ini terlebih dahulu. Untuk membuka form klik tombol <strong>`Buka Form`</strong> dibawah ini.', unsafe_allow_html=True)
-        if st.button("Buka Form"):
+        st.html('<p style="text-align: justify;">Untuk menggunakan aplikasi ini, silahkan isi form dibawah ini terlebih dahulu. Untuk membuka form klik tombol <strong>"Buka Form"</strong> dibawah ini.</p>')
+        if st.button("Buka Form", type="primary"):
             data_diri()
 
     # BPM
     if "read_sensor" not in st.session_state:
-        st.markdown('Selanjutnya, nyalakan perangkat IoT kamu dan masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>`Read Sensor`</strong> dibawah ini.', unsafe_allow_html=True)
-        st.warning("Pastikan kamu terhubung dengan perangkat IoT!")
-        if st.button("Read Sensor"):
-            progress_text = "Reading sensor..."
-            read_bar = st.progress(0, text=progress_text)
+        st.html('<p style="text-align: justify;">Selanjutnya, nyalakan perangkat IoT kamu terlebih dahulu, kemudian geser toggle <strong>"Connect IoT Device"</strong> di bawah ini untuk menghubungkan perangkat IoT dengan aplikasi.</p>')
+        st.warning("⚠️ Pastikan perangkat IoT sudah terhubung dengan internet!")
 
-            for percent_complete in range(100):
-                time.sleep(0.01)
-                read_bar.progress(percent_complete + 1, text=progress_text)
-            time.sleep(1)
-            read_bar.empty()
+    on = st.toggle("Connect IoT Device")
+    if on:
+        device = True
+    else:
+        device = False
+    
+    
+    if device:
+        st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: green;">Connected</span></div>""")
+        if "read_sensor" not in st.session_state:
+            st.html('<p style="text-align: justify;">Selanjutnya, masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>"Read Sensor"</strong> dibawah ini.</p>')        
+            st.warning("⚠️ Pastikan kamu sudah terhubung dengan perangkat IoT sebelum menekan tombol dibawah ini!")
+            if st.button("Read Sensor", type="primary") and device:
+                progress_text = "Reading sensor..."
+                sensor_bar = st.progress(0, text=progress_text)
 
-            bpm = random.randint(10, 200)
-            spo2 = random.randint(10, 100)
-            st.session_state.read_sensor = {"bpm": bpm, "spo2": spo2}
-            st.rerun()
-        st.markdown('Setelah selesai mengisi form dan mendapatkan data dari sensor, maka akan muncul prediksi resiko jantung kamu dan chatbot jika kamu memiliki pertanyaan seputar penyakit jantung koroner.')
+                for percent_complete in range(100):
+                    time.sleep(0.01)
+                    sensor_bar.progress(percent_complete + 1, text=progress_text)
+                time.sleep(1)
+                sensor_bar.empty()
 
+                bpm = random.randint(10, 200)
+                spo2 = random.randint(10, 100)
+                st.session_state.read_sensor = {"bpm": bpm, "spo2": spo2}
+                st.rerun()
+            st.html('<p style="text-align: justify;">Setelah selesai mengisi form dan mendapatkan data dari sensor, maka akan muncul prediksi resiko jantung kamu dan chatbot jika kamu memiliki pertanyaan seputar penyakit jantung koroner.</p>')
+    else:
+        st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: red;">Disconnected</span></div>""")
+    
+        
+        
 
     if "data_diri" in st.session_state and "read_sensor" in st.session_state:
+        progress_text = "Predict..."
+        predict_bar = st.progress(0, text=progress_text)
+
+        for percent_complete in range(100):
+            time.sleep(0.01)
+            predict_bar.progress(percent_complete + 1, text=progress_text)
+        time.sleep(1)
+        predict_bar.empty()
+
+        st.info('Untuk mengatur ulang informasi diri anda, silahkan refresh halaman ini.')
+
         name = st.session_state.data_diri['name']
         BMI = st.session_state.data_diri['BMI']
         heartRate = st.session_state.read_sensor['bpm']
@@ -211,28 +243,28 @@ def main():
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             if status == 'risk':
-                st.html("""<strong>Status</strong><br><span style="font-size: 28px; color: red;">Risk</span>""")
+                st.html("""<div style="text-align: center;"><strong>Status</strong><br><span style="font-size: 28px; color: red;">Risk</span></div>""")
             else:
-                st.html("""<strong>Status</strong><br><span style="font-size: 28px; color: green;">Normal</span>""")
+                st.html("""<div style="text-align: center;"><strong>Status</strong><br><span style="font-size: 28px; color: green;">Normal</span></div>""")
         with col2:
             if heartRate >= 60 and heartRate <= 100:
-                st.html(f"""<strong>Average BPM</strong><br><span style="font-size: 28px; color: green;">{heartRate}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>Average BPM</strong><br><span style="font-size: 28px; color: green;">{heartRate}</span></div>""")
             else:
-                st.html(f"""<strong>Average BPM</strong><br><span style="font-size: 28px; color: red;">{heartRate}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>Average BPM</strong><br><span style="font-size: 28px; color: red;">{heartRate}</span></div>""")
         with col3:
             if spo2 > 94:
-                st.html(f"""<strong>Oxygen Level</strong><br><span style="font-size: 28px; color: green;">{spo2}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>Oxygen Level</strong><br><span style="font-size: 28px; color: green;">{spo2}</span></div>""")
             else:
-                st.html(f"""<strong>Oxygen Level</strong><br><span style="font-size: 28px; color: red;">{spo2}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>Oxygen Level</strong><br><span style="font-size: 28px; color: red;">{spo2}</span></div>""")
         with col4:
             if BMI < 18.5:
-                st.html(f"""<strong>BMI</strong><br><span style="font-size: 28px; color: red;">{BMI}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>BMI</strong><br><span style="font-size: 28px; color: red;">{BMI}</span></div>""")
             elif 18.5 <= BMI < 24.9:
-                st.html(f"""<strong>BMI</strong><br><span style="font-size: 28px; color: green;">{BMI}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>BMI</strong><br><span style="font-size: 28px; color: green;">{BMI}</span></div>""")
             elif 25 <= BMI < 29.9:
-                st.html(f"""<strong>BMI</strong><br><span style="font-size: 28px; color: orange;">{BMI}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>BMI</strong><br><span style="font-size: 28px; color: orange;">{BMI}</span></div>""")
             else:
-                st.html(f"""<strong>BMI</strong><br><span style="font-size: 28px; color: red;">{BMI}</span>""")
+                st.html(f"""<div style="text-align: center;"><strong>BMI</strong><br><span style="font-size: 28px; color: red;">{BMI}</span></div>""")
 
         with st.spinner('Loading chatbot...'):
             # Create vector store
