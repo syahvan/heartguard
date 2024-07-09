@@ -10,6 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.llms import Ollama
 from langchain_community.embeddings import OllamaEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
@@ -26,7 +27,9 @@ def create_vector_db(path):
         text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=100, length_function=len)
         chunks = text_splitter.split_documents(text)
 
-        embeddings = OllamaEmbeddings(model="all-minilm")
+        # embeddings = OllamaEmbeddings(model="all-minilm")
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", 
+                                           model_kwargs={'device': 'cpu'})
         vector_db = FAISS.from_documents(chunks, embedding=embeddings)
         
         return vector_db
