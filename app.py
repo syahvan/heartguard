@@ -184,14 +184,15 @@ def main():
         st.markdown('Selanjutnya, nyalakan perangkat IoT kamu dan masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>`Read Sensor`</strong> dibawah ini.', unsafe_allow_html=True)
         st.warning("Pastikan kamu terhubung dengan perangkat IoT!")
         if st.button("Read Sensor"):
-            read_bar = st.progress(0, text="Reading sensor...")
+            progress_text = "Reading sensor..."
+            read_bar = st.progress(0, text=progress_text)
 
             for percent_complete in range(100):
                 time.sleep(0.01)
                 read_bar.progress(percent_complete + 1, text=progress_text)
             time.sleep(1)
             read_bar.empty()
-            
+
             bpm = random.randint(10, 200)
             spo2 = random.randint(10, 100)
             st.session_state.read_sensor = {"bpm": bpm, "spo2": spo2}
