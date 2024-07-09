@@ -181,8 +181,8 @@ def main():
     if "read_sensor" not in st.session_state:
         st.markdown('Selanjutnya, nyalakan perangkat IoT kamu dan masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>Read Sensor</strong> dibawah ini.', unsafe_allow_html=True)
         if st.button("Read Sensor"):
-            bpm = 90
-            spo2 = 96
+            bpm = random.randint(10, 200)
+            spo2 = random.randint(10, 100)
             st.session_state.read_sensor = {"bpm": bpm, "spo2": spo2}
             st.rerun()
         st.markdown('Setelah selesai mengisi form dan mendapatkan data dari sensor, maka akan muncul prediksi resiko jantung kamu dan chatbot jika kamu memiliki pertanyaan seputar penyakit jantung koroner.')
