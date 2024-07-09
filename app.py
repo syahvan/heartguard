@@ -15,6 +15,7 @@ from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
 import random
+import time
 
 load_dotenv()  
 groq_api_key = os.environ['GROQ_API_KEY']
@@ -174,14 +175,23 @@ def main():
             st.rerun()
 
     if "data_diri" not in st.session_state:
-        st.markdown('Untuk menggunakan aplikasi ini, silahkan isi form dibawah ini terlebih dahulu. Untuk membuka form klik tombol <strong>Buka Form</strong> dibawah ini.', unsafe_allow_html=True)
+        st.markdown('Untuk menggunakan aplikasi ini, silahkan isi form dibawah ini terlebih dahulu. Untuk membuka form klik tombol <strong>`Buka Form`</strong> dibawah ini.', unsafe_allow_html=True)
         if st.button("Buka Form"):
             data_diri()
 
     # BPM
     if "read_sensor" not in st.session_state:
-        st.markdown('Selanjutnya, nyalakan perangkat IoT kamu dan masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>Read Sensor</strong> dibawah ini.', unsafe_allow_html=True)
+        st.markdown('Selanjutnya, nyalakan perangkat IoT kamu dan masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>`Read Sensor`</strong> dibawah ini.', unsafe_allow_html=True)
+        st.warning("Pastikan kamu terhubung dengan perangkat IoT!")
         if st.button("Read Sensor"):
+            read_bar = st.progress(0, text="Reading sensor...")
+
+            for percent_complete in range(100):
+                time.sleep(0.01)
+                read_bar.progress(percent_complete + 1, text=progress_text)
+            time.sleep(1)
+            read_bar.empty()
+            
             bpm = random.randint(10, 200)
             spo2 = random.randint(10, 100)
             st.session_state.read_sensor = {"bpm": bpm, "spo2": spo2}
