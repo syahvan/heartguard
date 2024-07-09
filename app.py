@@ -26,7 +26,7 @@ def create_vector_db(path):
         text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=100, length_function=len)
         chunks = text_splitter.split_documents(text)
 
-        embeddings = OllamaEmbeddings(model="nomic-embed-text")
+        embeddings = OllamaEmbeddings(model="all-minilm")
         vector_db = FAISS.from_documents(chunks, embedding=embeddings)
         
         return vector_db
