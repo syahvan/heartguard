@@ -1,4 +1,3 @@
-ollama
 streamlit  
 langchain
 langchain-core
