@@ -188,16 +188,15 @@ def main():
         st.html('<p style="text-align: justify;">Selanjutnya, nyalakan perangkat IoT kamu terlebih dahulu, kemudian geser toggle <strong>"Connect IoT Device"</strong> di bawah ini untuk menghubungkan perangkat IoT dengan aplikasi.</p>')
         st.warning("⚠️ Pastikan perangkat IoT sudah terhubung dengan internet!")
 
-    on = st.toggle("Connect IoT Device")
-    if on:
-        device = True
-    else:
-        device = False
-    
-    
-    if device:
-        st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: green;">Connected</span></div>""")
-        if "read_sensor" not in st.session_state:
+        on = st.toggle("Connect IoT Device")
+        if on:
+            device = True
+        else:
+            device = False
+        
+        
+        if device:
+            st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: green;">Connected</span></div>""")
             st.html('<p style="text-align: justify;">Selanjutnya, masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>"Read Sensor"</strong> dibawah ini.</p>')        
             st.warning("⚠️ Pastikan kamu sudah terhubung dengan perangkat IoT sebelum menekan tombol dibawah ini!")
             if st.button("Read Sensor", type="primary") and device:
@@ -215,21 +214,13 @@ def main():
                 st.session_state.read_sensor = {"bpm": bpm, "spo2": spo2}
                 st.rerun()
             st.html('<p style="text-align: justify;">Setelah selesai mengisi form dan mendapatkan data dari sensor, maka akan muncul prediksi resiko jantung kamu dan chatbot jika kamu memiliki pertanyaan seputar penyakit jantung koroner.</p>')
-    else:
-        st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: red;">Disconnected</span></div>""")
+        else:
+            st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: red;">Disconnected</span></div>""")
     
         
         
 
     if "data_diri" in st.session_state and "read_sensor" in st.session_state:
-        progress_text = "Predict..."
-        predict_bar = st.progress(0, text=progress_text)
-
-        for percent_complete in range(100):
-            time.sleep(0.01)
-            predict_bar.progress(percent_complete + 1, text=progress_text)
-        time.sleep(1)
-        predict_bar.empty()
 
         st.info('Untuk mengatur ulang informasi diri anda, silahkan refresh halaman ini.')
 
@@ -238,7 +229,7 @@ def main():
         heartRate = st.session_state.read_sensor['bpm']
         spo2 = st.session_state.read_sensor['spo2']
         
-        status = random.choice(['risk', 'normal'])
+        status = 'risk'
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             if status == 'risk':
