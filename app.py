@@ -14,6 +14,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
+import random
 
 load_dotenv()  
 groq_api_key = os.environ['GROQ_API_KEY']
