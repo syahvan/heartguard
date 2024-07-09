@@ -238,8 +238,7 @@ def main():
         heartRate = st.session_state.read_sensor['bpm']
         spo2 = st.session_state.read_sensor['spo2']
         
-        status = 'normal'
-
+        status = random.choice(['risk', 'normal'])
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             if status == 'risk':
