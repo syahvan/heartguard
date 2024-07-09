@@ -13,23 +13,26 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
-import tempfile
 
 load_dotenv()  
 groq_api_key = os.environ['GROQ_API_KEY']
 
 def create_vector_db(path):
-    text = []
-    loader = PyPDFLoader(path)
-    text.extend(loader.load())
+    try:
+        text = []
+        loader = PyPDFLoader(path)
+        text.extend(loader.load())
 
-    text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=100, length_function=len)
-    chunks = text_splitter.split_documents(text)
+        text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=100, length_function=len)
+        chunks = text_splitter.split_documents(text)
 
-    embeddings = OllamaEmbeddings(model="nomic-embed-text", show_progress=True)
-    vector_db = FAISS.from_documents(chunks, embedding=embeddings)
-    
-    return vector_db
+        embeddings = OllamaEmbeddings(model="nomic-embed-text")
+        vector_db = FAISS.from_documents(chunks, embedding=embeddings)
+        
+        return vector_db
+    except Exception as e:
+        st.error(f"Failed to create vector store: {e}")
+        return None
 
 
 def process_question(query, vector_store):
