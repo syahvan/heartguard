@@ -252,7 +252,7 @@ def main():
                     bpm = beat_avg['value']
                     temp = ref.child('temperature').get()
                     temperature = round(temp['value'], 1)
-                    time.sleep(0.01)
+                    time.sleep(1)
                     sensor_bar.progress(percent_complete + 10, text=progress_text)
 
                 time.sleep(1)
@@ -323,7 +323,7 @@ def main():
 
         with st.spinner('Loading chatbot...'):
             # Create vector store
-            vector_store = create_vector_db("Data/Penyakit Jantung Koroner.pdf")
+            vector_store = create_vector_db("Dataset/Penyakit Jantung Koroner.pdf")
 
             initialize_session_state(vector_store, status, name)
                 
