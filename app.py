@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 from streamlit_chat import message
 from streamlit_extras.let_it_rain import rain
@@ -16,9 +17,46 @@ from dotenv import load_dotenv
 import os
 import random
 import time
+import pickle
+import firebase_admin
+from firebase_admin import credentials, db
+from sklearn.ensemble import GradientBoostingClassifier
 
 load_dotenv()  
 groq_api_key = os.environ['GROQ_API_KEY']
+
+# Path ke file kunci pribadi Firebase
+try:
+    app = firebase_admin.get_app()
+except ValueError as e:
+    cred = credentials.Certificate("bpm-sic-firebase.json")
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://bpm-sic-default-rtdb.firebaseio.com'
+    })
+
+
+# Load the trained model and scaler
+model_filename = 'Model/best_model.sav'
+scaler_filename = 'Model/scaler.sav'
+loaded_model = pickle.load(open(model_filename, 'rb'))
+loaded_scaler = pickle.load(open(scaler_filename, 'rb'))
+
+def predict_heart_disease(input_data):
+    # Convert input data to DataFrame
+    input_df = pd.DataFrame([input_data], columns=input_data.keys())
+    
+    # Feature Engineering for the new input
+    input_df['age_squared'] = input_df['age'] ** 2
+    input_df['BMI_age_interaction'] = input_df['BMI'] * input_df['age']
+    input_df['cigsPerDay_squared'] = input_df['cigsPerDay'] ** 2
+    
+    # Scaling the input data
+    input_scaled = loaded_scaler.transform(input_df)
+    
+    # Predict using the loaded model
+    prediction = loaded_model.predict(input_scaled)
+    
+    return "Risk" if prediction == 1 else "Normal"
 
 def create_vector_db(path):
     try:
@@ -29,7 +67,6 @@ def create_vector_db(path):
         text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=100, length_function=len)
         chunks = text_splitter.split_documents(text)
 
-        # embeddings = OllamaEmbeddings(model="all-minilm")
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", 
                                            model_kwargs={'device': 'cpu'})
         vector_db = FAISS.from_documents(chunks, embedding=embeddings)
@@ -90,7 +127,7 @@ def initialize_session_state(vector_store, status, name):
         st.session_state['past'] = ["Halo! Bagaimana keadaan jantung saya? 🤔"]
 
     if 'generated' not in st.session_state:
-        if status == 'risk':
+        if status == 'Risk':
             st.session_state['generated'] = [f"Halo, {name}!\n\nKamu memiliki resiko penyakit jantung koroner 😢\n\n" + process_question("Saya memiliki resiko penyakit jantung koroner, apa yang harus saya lakukan?", vector_store)]
         else:
             st.session_state['generated'] = [f"Halo, {name}!\n\nKamu memiliki jantung yang sehat 😊\n\n" + "Apakah ada yang ingin kamu ketahui mengenai penyakit jantung koroner?"]
@@ -131,7 +168,7 @@ def main():
     groq_api_key = os.environ['GROQ_API_KEY']
     st.set_page_config(page_title="HeartGuard")
     st.title("❤️‍🩹 HeartGuard")
-    st.html('<p style="text-align: justify;">An early detection of coronary heart disease risk using an IoT and chatbot system.</p>')
+    st.html('<p style="text-align: justify;">An early detection of coronary heart disease Risk using IoT and chatbot system.</p>')
 
     st.subheader('Prediksi Resiko Penyakit Jantung Koroner 🫀')
     st.html('<p style="text-align: justify;">Penyakit jantung koroner disebut sebagai penyumbang kematian terbesar di dunia. Penyakit ini didukung oleh faktor risiko seperti kolesterol, tekanan darah tinggi, merokok, obesitas, dan diabetes. Yuk, cek risiko kamu sekarang untuk pencegahan dini dan hidup lebih sehat!</p>')
@@ -185,35 +222,47 @@ def main():
 
     # BPM
     if "read_sensor" not in st.session_state:
-        st.html('<p style="text-align: justify;">Selanjutnya, nyalakan perangkat IoT kamu terlebih dahulu, kemudian geser toggle <strong>"Connect IoT Device"</strong> di bawah ini untuk menghubungkan perangkat IoT dengan aplikasi.</p>')
+        st.html('<p style="text-align: justify;">Selanjutnya, nyalakan perangkat IoT kamu terlebih dahulu dan <strong>masukkan jari kamu ke dalam alat</strong> agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, geser toggle <strong>"Connect IoT Device"</strong> di bawah ini untuk menghubungkan perangkat IoT dengan aplikasi.</p>')
         st.warning("⚠️ Pastikan perangkat IoT sudah terhubung dengan internet!")
 
         on = st.toggle("Connect IoT Device")
         if on:
+            ref = db.reference('Semarang')
+            finger = ref.child('status').get()
+            fingerStatus = finger['value']
             device = True
+            if fingerStatus == 'on':
+                deviceFinger = True
+            else:
+                deviceFinger = False
         else:
             device = False
         
         
-        if device:
+        if device and deviceFinger:
             st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: green;">Connected</span></div>""")
-            st.html('<p style="text-align: justify;">Selanjutnya, masukkan jari kamu ke dalam alat agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, klik tombol <strong>"Read Sensor"</strong> dibawah ini.</p>')        
+            st.html('<p style="text-align: justify;">Kemudian, klik tombol <strong>"Read Sensor"</strong> dibawah ini.</p>')        
             st.warning("⚠️ Pastikan kamu sudah terhubung dengan perangkat IoT sebelum menekan tombol dibawah ini!")
             if st.button("Read Sensor", type="primary") and device:
                 progress_text = "Reading sensor..."
                 sensor_bar = st.progress(0, text=progress_text)
 
-                for percent_complete in range(100):
+                for percent_complete in range(0, 100, 10):
+                    beat_avg = ref.child('beatAvg').get()
+                    bpm = beat_avg['value']
+                    temp = ref.child('temperature').get()
+                    temperature = round(temp['value'], 1)
                     time.sleep(0.01)
-                    sensor_bar.progress(percent_complete + 1, text=progress_text)
+                    sensor_bar.progress(percent_complete + 10, text=progress_text)
+
                 time.sleep(1)
                 sensor_bar.empty()
 
-                bpm = random.randint(10, 200)
-                spo2 = random.randint(10, 100)
-                st.session_state.read_sensor = {"bpm": bpm, "spo2": spo2}
+                st.session_state.read_sensor = {"bpm": bpm, "temperature": temperature}
                 st.rerun()
             st.html('<p style="text-align: justify;">Setelah selesai mengisi form dan mendapatkan data dari sensor, maka akan muncul prediksi resiko jantung kamu dan chatbot jika kamu memiliki pertanyaan seputar penyakit jantung koroner.</p>')
+        elif device == True and deviceFinger == False:
+            st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: red;">No Finger Detected</span></div>""")
         else:
             st.html("""<div style="text-align: center;"><strong>IoT Device Status</strong><br><span style="font-size: 28px; color: red;">Disconnected</span></div>""")
     
@@ -227,12 +276,28 @@ def main():
         name = st.session_state.data_diri['name']
         BMI = st.session_state.data_diri['BMI']
         heartRate = st.session_state.read_sensor['bpm']
-        spo2 = st.session_state.read_sensor['spo2']
+        temperature = st.session_state.read_sensor['temperature']
+
+        # Collect input data
+        input_data = {
+            'male': st.session_state.data_diri['male'],
+            'age': st.session_state.data_diri['age'],
+            'currentSmoker': st.session_state.data_diri['currentSmoker'],
+            'cigsPerDay': st.session_state.data_diri['cigsPerDay'],
+            'BPMeds': st.session_state.data_diri['BPMeds'],
+            'prevalentStroke': st.session_state.data_diri['prevalentStroke'],
+            'prevalentHyp': st.session_state.data_diri['prevalentHyp'],
+            'diabetes': st.session_state.data_diri['diabetes'],
+            'BMI': BMI,
+            'heartRate': heartRate,
+        }
         
-        status = 'risk'
+        with st.spinner('Loading chatbot...'):
+            status = predict_heart_disease(input_data)
+
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            if status == 'risk':
+            if status == 'Risk':
                 st.html("""<div style="text-align: center;"><strong>Status</strong><br><span style="font-size: 28px; color: red;">Risk</span></div>""")
             else:
                 st.html("""<div style="text-align: center;"><strong>Status</strong><br><span style="font-size: 28px; color: green;">Normal</span></div>""")
@@ -242,10 +307,10 @@ def main():
             else:
                 st.html(f"""<div style="text-align: center;"><strong>Average BPM</strong><br><span style="font-size: 28px; color: red;">{heartRate}</span></div>""")
         with col3:
-            if spo2 > 94:
-                st.html(f"""<div style="text-align: center;"><strong>Oxygen Level</strong><br><span style="font-size: 28px; color: green;">{spo2}</span></div>""")
+            if temperature < 35 or temperature > 38:
+                st.html(f"""<div style="text-align: center;"><strong>Body Temperature</strong><br><span style="font-size: 28px; color: red;">{temperature} °C</span></div>""")
             else:
-                st.html(f"""<div style="text-align: center;"><strong>Oxygen Level</strong><br><span style="font-size: 28px; color: red;">{spo2}</span></div>""")
+                st.html(f"""<div style="text-align: center;"><strong>Body Temperature</strong><br><span style="font-size: 28px; color: green;">{temperature} °C</span></div>""")
         with col4:
             if BMI < 18.5:
                 st.html(f"""<div style="text-align: center;"><strong>BMI</strong><br><span style="font-size: 28px; color: red;">{BMI}</span></div>""")
@@ -258,7 +323,7 @@ def main():
 
         with st.spinner('Loading chatbot...'):
             # Create vector store
-            vector_store = create_vector_db("data/Penyakit Jantung Koroner.pdf")
+            vector_store = create_vector_db("Data/Penyakit Jantung Koroner.pdf")
 
             initialize_session_state(vector_store, status, name)
                 
