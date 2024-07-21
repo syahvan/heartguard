@@ -1,4 +1,3 @@
-// Import libraries 
 #include <Wire.h> // Library to communicate with I2C/TWI devices
 #include "MAX30105.h" // SparkFun library for MAX30102 Pulse and MAX30105 Proximity Breakout
 #include "heartRate.h"  // Library for Optical heart rate detection SparkFun
@@ -24,7 +23,7 @@
 // Insert Firebase project API Key
 #define API_KEY "AIzaSyD1DHSVT3tlzlpJoA-IdfYmtHDi90GCReU"
 
-// Insert RTDB URLefine the RTDB URL */
+// Insert RTDB URL
 #define DATABASE_URL "https://bpm-sic-default-rtdb.firebaseio.com" 
 
 // Define global variables 
