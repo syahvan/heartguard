@@ -17,8 +17,8 @@
 #define DEVICE_UID "SIC" // The Unique ID helps to identify data coming from multiple sensors 
 
 // Insert your network credentials
-#define WIFI_SSID "Modal Bos"
-#define WIFI_PASSWORD "1sampai8"
+#define WIFI_SSID "WIJAYA 2A"
+#define WIFI_PASSWORD "wijayahebat"
 
 // Insert Firebase project API Key
 #define API_KEY "AIzaSyD1DHSVT3tlzlpJoA-IdfYmtHDi90GCReU"
