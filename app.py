@@ -222,7 +222,7 @@ def main():
 
     # BPM
     if "read_sensor" not in st.session_state:
-        st.html('<p style="text-align: justify;">Selanjutnya, nyalakan perangkat IoT kamu terlebih dahulu dan <strong>masukkan jari kamu ke dalam alat</strong> agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, geser toggle <strong>"Connect IoT Device"</strong> di bawah ini untuk menghubungkan perangkat IoT dengan aplikasi.</p>')
+        st.html('<p style="text-align: justify;">Selanjutnya, nyalakan perangkat IoT kamu terlebih dahulu dan <strong>letakkan jari kamu ke atas sensor</strong> agar sensor dapat membaca BPM dan kadar oksigen dalam tubuh kamu. Kemudian, geser toggle <strong>"Connect IoT Device"</strong> di bawah ini untuk menghubungkan perangkat IoT dengan aplikasi.</p>')
         st.warning("⚠️ Pastikan perangkat IoT sudah terhubung dengan internet!")
 
         on = st.toggle("Connect IoT Device")
